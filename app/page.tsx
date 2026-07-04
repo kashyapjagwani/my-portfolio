@@ -688,7 +688,7 @@ function FooterTile({
       href={href}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       aria-label={external ? `${label} — opens in a new tab` : label}
-      className="group relative flex min-h-[200px] flex-col justify-end overflow-hidden rounded-3xl border border-white/50 bg-white/25 p-6 shadow-lg shadow-black/5 backdrop-blur-2xl hover:backdrop-blur-sm transition cursor-pointer md:min-h-[300px] md:p-8"
+      className="group relative flex min-h-[200px] flex-col justify-end overflow-hidden rounded-3xl border border-neutral-300/50 bg-neutral-300/50 p-6 shadow-lg shadow-black/5 backdrop-blur-lg hover:backdrop-blur-sm transition cursor-pointer md:min-h-[300px] md:p-8"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
