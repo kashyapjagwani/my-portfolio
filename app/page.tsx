@@ -294,7 +294,8 @@ function MobileCarousel({ active }: { active: boolean }) {
               onDragEnd={(_, { offset, velocity }) => {
                 const power = swipePower(offset.x, velocity.x);
                 if (power < -SWIPE_CONFIDENCE || offset.x < -60) paginate(1);
-                else if (power > SWIPE_CONFIDENCE || offset.x > 60) paginate(-1);
+                else if (power > SWIPE_CONFIDENCE || offset.x > 60)
+                  paginate(-1);
               }}
             >
               <Image
@@ -400,18 +401,16 @@ const fadeDown = {
   },
 };
 
-// `mix-blend-difference` paints the text as the photographic negative of
-// whatever sits behind the fixed header, so it stays legible over both the
-// light hero background and any dark content that scrolls underneath. White
-// against the near-white hero reads as near-black; against dark sections it
-// reads as near-white. The colours below are chosen so they invert cleanly:
+// The blend that keeps this legible over any backdrop lives on the <header>
+// (see below), not here: a fixed element creates its own stacking context, so
+// `mix-blend-mode` on a *descendant* would only blend against the header's own
+// transparent backdrop — never the scrolling page. With the blend on the header
+// the whole group inverts against whatever is behind it, so these stay plain:
 // white → the strong label, neutral-400 → a muted sub-line, in either polarity.
 const InfoBlock = ({ label, sub }: { label: string; sub: string }) => (
-  <div className="flex flex-col gap-0.5 mix-blend-difference">
-    <p className="text-lg font-semibold text-white leading-tight mix-blend-difference">
-      {label}
-    </p>
-    <p className="text-neutral-400 leading-tight mix-blend-color-burn">{sub}</p>
+  <div className="flex flex-col gap-0.5">
+    <p className="text-lg font-semibold text-white leading-tight">{label}</p>
+    <p className="text-neutral-400 leading-tight">{sub}</p>
   </div>
 );
 
@@ -642,19 +641,109 @@ function ScatterTitle({
   );
 }
 
+// ── Footer ──
+// A single frosted-glass tile. The translucent `bg-white/25` + `backdrop-blur`
+// lets the giant wordmark behind it show through, blurred and lightened — the
+// crisp dark text only reads sharply in the gap between tiles. Hover lifts the
+// tile and nudges the arrow, matching the work-card interaction language.
+function FooterTile({
+  label,
+  href,
+  external,
+}: {
+  label: string;
+  href: string;
+  external?: boolean;
+}) {
+  const spring = { type: "spring" as const, stiffness: 260, damping: 24 };
+  return (
+    <motion.a
+      href={href}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      aria-label={external ? `${label} — opens in a new tab` : label}
+      className="group relative flex min-h-[200px] flex-col justify-end overflow-hidden rounded-3xl border border-white/50 bg-white/25 p-6 shadow-lg shadow-black/5 backdrop-blur-2xl hover:backdrop-blur-sm transition cursor-pointer md:min-h-[300px] md:p-8"
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      transition={{ duration: 0.7, ease }}
+      whileHover={{ y: -6, transition: spring }}
+      whileTap={{ scale: 0.99, transition: spring }}
+    >
+      {/* Arrow affordance — slides up-and-right on hover */}
+      <span className="absolute right-6 top-6 text-neutral-700 transition-all duration-500 ease-out group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-neutral-950 md:right-8 md:top-8">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden className="h-6 w-6">
+          <path
+            d="M7 17 17 7M9 7h8v8"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+
+      <span className="text-2xl font-semibold tracking-tight text-neutral-950 md:text-3xl">
+        {label}
+      </span>
+    </motion.a>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="relative overflow-hidden px-4 pb-10 pt-16 lg:px-8 lg:pt-24">
+      {/* Background wordmark — huge, centred, clipped by the footer's
+          overflow-hidden. Sits behind the frosted tiles, which blur the
+          letters they cover; the gap between tiles reveals the crisp glyphs. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center justify-center"
+      >
+        <span className="select-none whitespace-nowrap text-[19vw] font-black leading-none tracking-tighter text-neutral-950">
+          itskashyap
+        </span>
+      </div>
+
+      {/* Frosted tiles */}
+      <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-6">
+        <FooterTile href="mailto:kashyapjagwani@gmail.com" label="Contact" />
+        <FooterTile
+          href="https://www.linkedin.com/in/kashyap-jagwani"
+          label="LinkedIn"
+          external
+        />
+      </div>
+
+      {/* Baseline — name + year, kept subtle so the wordmark stays the hero */}
+      <div className="relative mt-10 flex items-center justify-between text-sm text-neutral-500">
+        <span>© {new Date().getFullYear()} Kashyap Jagwani</span>
+        <span className="uppercase tracking-widest">Mumbai</span>
+      </div>
+    </footer>
+  );
+}
+
 export default function Home() {
   return (
     <div className="bg-[#f2ede8] min-h-screen font-sans overflow-x-hidden">
       {/* ── Fixed header ── */}
+      {/* `mix-blend-difference` sits on the header itself — the fixed element
+          that participates in the page's root stacking context — so the whole
+          group (info text + Get in Touch button) inverts against whatever
+          scrolls behind it. On a descendant the blend would be trapped inside
+          the header's own stacking context and show no effect. */}
       <motion.header
-        className="fixed top-0 left-0 right-0 z-50 flex items-start justify-between px-4 lg:px-8 pt-5 pb-4"
+        className="fixed top-0 left-0 right-0 z-50 flex items-start justify-between px-4 lg:px-8 pt-5 pb-4 mix-blend-difference"
         initial="hidden"
         animate="visible"
         variants={staggerHeader}
       >
         <div className="flex gap-10">
           <motion.div variants={fadeDown}>
-            <InfoBlock label="Mumbai Based" sub="I love this city ❤️" />
+            <InfoBlock
+              label="Kashyap Jagwani"
+              sub="📍Mumbai - I love this city ❤️"
+            />
           </motion.div>
           {/* <motion.div variants={fadeDown}>
             <InfoBlock label="Looking for" sub="Full-time roles" />
@@ -932,6 +1021,9 @@ export default function Home() {
           />
         </div>
       </section>
+
+      {/* ── Footer ── */}
+      <Footer />
     </div>
   );
 }
