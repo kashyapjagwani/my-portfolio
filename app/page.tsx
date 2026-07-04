@@ -267,40 +267,47 @@ function MobileCarousel({ active }: { active: boolean }) {
   const card = HERO_COLLAGE[current];
 
   return (
-    <div className="flex w-full flex-col items-center gap-5">
-      <div className="relative w-full overflow-hidden rounded-2xl bg-neutral-900 shadow-xl shadow-black/20 aspect-3/2">
-        <AnimatePresence initial={false} custom={direction}>
-          <motion.div
-            key={index}
-            className="absolute inset-0 cursor-grab active:cursor-grabbing"
-            custom={direction}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 },
-            }}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.4}
-            onDragEnd={(_, { offset, velocity }) => {
-              const power = swipePower(offset.x, velocity.x);
-              if (power < -SWIPE_CONFIDENCE || offset.x < -60) paginate(1);
-              else if (power > SWIPE_CONFIDENCE || offset.x > 60) paginate(-1);
-            }}
-          >
-            <Image
-              src={card.src}
-              alt={card.alt}
-              fill
-              sizes="100vw"
-              draggable={false}
-              className="pointer-events-none object-cover select-none"
-            />
-          </motion.div>
-        </AnimatePresence>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-5">
+      {/* Flex stage: claims whatever height the hero column has left over. The
+          box inside keeps its 3:2 ratio at full size on tall screens, but
+          max-h-full lets it shrink into this stage on short phones so the title
+          below it always stays within the first fold instead of spilling under
+          it. min-h-0 is what allows the shrink in a flex column. */}
+      <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+        <div className="relative aspect-3/2 max-h-full w-full overflow-hidden rounded-2xl bg-neutral-900 shadow-xl shadow-black/20">
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
+              key={index}
+              className="absolute inset-0 cursor-grab active:cursor-grabbing"
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 },
+              }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.4}
+              onDragEnd={(_, { offset, velocity }) => {
+                const power = swipePower(offset.x, velocity.x);
+                if (power < -SWIPE_CONFIDENCE || offset.x < -60) paginate(1);
+                else if (power > SWIPE_CONFIDENCE || offset.x > 60) paginate(-1);
+              }}
+            >
+              <Image
+                src={card.src}
+                alt={card.alt}
+                fill
+                sizes="100vw"
+                draggable={false}
+                className="pointer-events-none object-cover select-none"
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Dot indicators — active dot stretches into a pill */}
@@ -348,8 +355,12 @@ function HeroCollage() {
   const isDesktop = useIsDesktop();
   return (
     <div className="flex-1 min-h-0 flex items-center justify-center">
-      {/* Mobile: swipeable carousel */}
-      <div className="w-full lg:hidden">
+      {/* Mobile + tablet: swipeable carousel. Capped width keeps the
+          width-driven aspect-3/2 image short enough to fit the hero on wide
+          tablets — at full width it grew taller than the available space and
+          spilled up under the fixed header. min-h-0 lets it shrink in the flex
+          column rather than overflow. */}
+      <div className="w-full max-w-xl h-full min-h-0 lg:hidden">
         <MobileCarousel active={!isDesktop} />
       </div>
 
@@ -657,7 +668,13 @@ export default function Home() {
       </motion.header>
 
       {/* ── Hero ── */}
-      <main className="h-screen flex flex-col px-4 lg:px-8 mt-16 md:mt-32 xl:mt-0">
+      {/* The top margin clears the fixed header; the height subtracts that same
+          margin at each breakpoint so `margin + height` is always exactly one
+          viewport — otherwise `h-screen + mt-*` overflows the fold by the margin.
+          svh (small viewport height) is static — unlike dvh it doesn't
+          recalculate as mobile browser chrome shows/hides on scroll, so the hero
+          stays put instead of jumping mid-scroll. */}
+      <main className="flex flex-col px-4 lg:px-8 h-[calc(100svh-4rem)] mt-16 md:h-[calc(100svh-8rem)] md:mt-32 xl:h-svh xl:mt-0">
         {/* Work-board collage — fills the space above the title */}
         <HeroCollage />
 
@@ -743,17 +760,17 @@ export default function Home() {
                 src="/my-solo-trek.jpeg"
                 alt="Me on my first solo camping trip at Mt. Rainier, Washington"
                 width={576}
-                height={600}
+                height={500}
                 sizes="(min-width: 1280px) 44vw, 100vw"
-                className="h-auto w-full max-w-[576px] rounded-2xl"
+                className="h-fit w-full max-w-[480px] rounded-2xl"
               />
-              <figcaption className="flex flex-col gap-0.5 max-w-[576px]">
+              <figcaption className="flex flex-col gap-0.5 max-w-[480px]">
                 <span className="flex items-center gap-1.5 font-semibold tracking-wide text-neutral-500">
                   <span aria-hidden>📍</span>
                   Mt. Rainier, Washington
                 </span>
                 <span className="text-lg text-neutral-950">
-                  My first solo camping trek.
+                  My first solo camping trek, 2023.
                 </span>
               </figcaption>
             </figure>
