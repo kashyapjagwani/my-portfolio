@@ -488,19 +488,46 @@ function GetInTouchButton() {
 const TECH_STACK = [
   {
     group: "Frontend",
-    items: ["React.js", "Next.js", "TypeScript", "Tailwind CSS", "Motion"],
+    items: [
+      "React.js",
+      "Next.js (SSR, ISR)",
+      "TypeScript",
+      "Tailwind",
+      "Redux State Mngt.",
+      "TanStack (React) Query",
+      "Framer Motion",
+      "JWT & Auth",
+      "SEO",
+    ],
   },
   {
     group: "Mobile",
-    items: ["React Native", "Expo"],
+    items: ["React Native", "Expo", "iOS", "Android"],
   },
   {
     group: "Backend & Cloud",
-    items: ["Node.js", "AWS", "Vercel", "Firebase"],
+    items: [
+      "Node.js",
+      "Express.js",
+      "Databases",
+      "MySQL",
+      "MongoDB, DynamoDB",
+      "Redis",
+      "AWS",
+      "Vercel",
+      "Firebase",
+    ],
   },
   {
     group: "Tools & Design",
-    items: ["Git & GitHub", "Figma", "Vite", "Contentful"],
+    items: [
+      "Git & GitHub",
+      "CI/CD Pipelines",
+      "Jest + React Testing Library",
+      "Figma",
+      "Vite",
+      "Contentful",
+    ],
   },
 ] as const;
 
@@ -926,7 +953,7 @@ export default function Home() {
                 },
               }}
             >
-              <span className="text-sm uppercase tracking-widest text-neutral-400 font-medium">
+              <span className="text-sm uppercase tracking-widest text-neutral-500 font-medium">
                 {group}
               </span>
               <ul className="flex flex-col gap-2.5">
